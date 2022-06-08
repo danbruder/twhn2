@@ -8,6 +8,7 @@ anyhow = "1.0.56"
 chrono = "0.4.19"
 duckdb = {version = "0.3.4", features = ["bundled", "r2d2", "modern-full"]}
 lazy_static = "1.4.0"
+mockall = "0.11.1"
 mockito = "0.31.0"
 r2d2 = "0.8.9"
 rayon = "1.5.1"

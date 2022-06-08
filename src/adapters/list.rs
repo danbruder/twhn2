@@ -16,18 +16,18 @@ impl FetchList for AppCapabilities {
 
 impl ReplaceList for AppCapabilities {
     fn replace_list(&self, category: ListCategory, ids: &[u32]) -> Result<()> {
-        let mut conn = self.db.get()?;
-        let tx = conn.transaction()?;
-        let _ = tx.execute(
+        let conn = self.db.get()?;
+        let _ = conn.execute(
             "DELETE FROM item_list WHERE category = ?1",
             params![category.to_string()],
         )?;
 
-        let _ = tx.execute(
+        // LOL
+        let _ = conn.execute(
             r#"
-            INSERT INTO 
+            INSERT INTO
                 item_list (category, ids, ts)
-            VALUES 
+            VALUES
                 (?1, ?2, ?3)
             "#,
             params![
@@ -87,6 +87,22 @@ pub mod test {
         let _ = app.store_list(ListCategory::Top, &[1, 2, 3]).unwrap();
         let got = app.load_list(ListCategory::Top).unwrap();
         let want = vec![1, 2, 3];
+
+        assert_eq!(got, want);
+    }
+
+    #[test]
+    fn replace_list() {
+        let app = crate::adapters::test::setup();
+        let _ = app.store_list(ListCategory::Top, &[1, 2, 3]).unwrap();
+        let got = app.load_list(ListCategory::Top).unwrap();
+        let want = vec![1, 2, 3];
+
+        assert_eq!(got, want);
+
+        let _ = app.replace_list(ListCategory::Top, &[2, 3, 4]).unwrap();
+        let got = app.load_list(ListCategory::Top).unwrap();
+        let want = vec![2, 3, 4];
 
         assert_eq!(got, want);
     }

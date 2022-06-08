@@ -56,6 +56,7 @@ pub trait LoadItemRanks {
     fn load_item_ranks(&self, id: u32, category: ListCategory) -> Result<Vec<ItemRank>>;
 }
 
+#[mockall::automock]
 pub trait LoadLatestItemRank {
     fn load_latest_item_rank(&self, id: u32, category: ListCategory) -> Result<Option<ItemRank>>;
 }

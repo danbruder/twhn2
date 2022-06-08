@@ -66,7 +66,7 @@ impl LoadLatestItemRank for AppCapabilities {
             WHERE 
                 id = ?1 
             AND 
-                list = ?2
+                category = ?2
             ORDER BY 
                 ts DESC
             LIMIT 1
