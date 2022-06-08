@@ -10,6 +10,7 @@ use adapters::AppCapabilities;
 use anyhow::Result;
 use infra::{db::Duck, hn::HnClient};
 use std::thread;
+use std::time::Duration;
 
 #[macro_use]
 extern crate rocket;
@@ -51,14 +52,14 @@ fn cron(app: AppCapabilities) {
         Ok(())
     };
 
-    //loop {
-    let _ = do_work();
-    println!("Done");
+    loop {
+        let result = do_work();
+        println!("Done");
 
-    // if result.is_err() {
-    //     println!("{:?}", result);
-    // }
+        if result.is_err() {
+            println!("{:?}", result);
+        }
 
-    //thread::sleep(Duration::from_secs(3));
-    //}
+        thread::sleep(Duration::from_secs(3));
+    }
 }
