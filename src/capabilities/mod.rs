@@ -10,6 +10,10 @@ pub trait StoreList {
     fn store_list(&self, category: ListCategory, ids: &[u32]) -> Result<()>;
 }
 
+pub trait ReplaceList {
+    fn replace_list(&self, category: ListCategory, ids: &[u32]) -> Result<()>;
+}
+
 pub trait LoadList {
     fn load_list(&self, category: ListCategory) -> Result<Vec<u32>>;
 }

@@ -49,9 +49,9 @@ impl Duck {
                 CREATE TABLE IF NOT EXISTS item_rank (
                     id INTEGER NOT NULL,
                     rank INTEGER NOT NULL, 
-                    list VARCHAR NOT NULL, 
+                    category VARCHAR NOT NULL, 
                     ts TIMESTAMP NOT NULL,
-                    PRIMARY KEY (id, list, ts)
+                    PRIMARY KEY (id, category, ts)
                 );
 
                 CREATE TABLE IF NOT EXISTS item_score (
@@ -69,10 +69,10 @@ impl Duck {
                 );
 
                 CREATE TABLE IF NOT EXISTS item_list (
-                    key VARCHAR NOT NULL,
+                    category VARCHAR NOT NULL,
                     ids VARCHAR NOT NULL, -- Serialized vec of ids
                     ts TIMESTAMP,
-                    PRIMARY KEY (key)
+                    PRIMARY KEY (category)
                 );
 
                 CREATE TABLE IF NOT EXISTS hn_user (
@@ -132,7 +132,7 @@ pub mod test {
         let got = conn
             .execute(
                 r#"
-                    INSERT INTO item_list (key, ids, ts)
+                    INSERT INTO item_list (category, ids, ts)
                     VALUES 
                     (?1, ?2, ?3)
                 "#,
@@ -179,7 +179,7 @@ pub mod test {
         let got = conn
             .execute(
                 r#"
-                    INSERT INTO item_rank (id, rank, list, ts)
+                    INSERT INTO item_rank (id, rank, category, ts)
                     VALUES
                     (?1, ?2, ?3, ?4)
                 "#,

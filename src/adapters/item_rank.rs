@@ -18,7 +18,7 @@ impl StoreItemRanks for AppCapabilities {
 
         for rank in item_ranks.into_iter() {
             tx.execute(
-                "INSERT INTO item_rank (id, rank, list, ts) VALUES (?1, ?2, ?3, ?4)",
+                "INSERT INTO item_rank (id, rank, category, ts) VALUES (?1, ?2, ?3, ?4)",
                 params![rank.id, rank.rank, rank.category.to_string(), rank.ts],
             )?;
         }
@@ -30,8 +30,9 @@ impl StoreItemRanks for AppCapabilities {
 impl LoadItemRanks for AppCapabilities {
     fn load_item_ranks(&self, id: u32, category: ListCategory) -> Result<Vec<ItemRank>> {
         let conn = self.db.get()?;
-        let mut stmt =
-            conn.prepare("SELECT id, rank, list, ts FROM item_rank WHERE id = ?1 AND list = ?2")?;
+        let mut stmt = conn.prepare(
+            "SELECT id, rank, category, ts FROM item_rank WHERE id = ?1 AND category = ?2",
+        )?;
 
         let results = stmt
             .query_map(params![id, category.to_string()], |row| {
@@ -59,7 +60,7 @@ impl LoadLatestItemRank for AppCapabilities {
         let mut stmt = conn.prepare(
             r#"
             SELECT
-                id, rank, list, ts 
+                id, rank, category, ts 
             FROM 
                 item_rank 
             WHERE 

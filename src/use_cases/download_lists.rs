@@ -1,6 +1,7 @@
 use crate::{
     capabilities::{
-        FetchItems, FetchList, LoadLatestItemRank, StoreItemRanks, StoreItems, StoreList,
+        FetchItems, FetchList, LoadLatestItemRank, ReplaceList, StoreItemRanks, StoreItems,
+        StoreList,
     },
     domain::{ItemRank, ListCategory},
 };
@@ -9,7 +10,13 @@ use chrono::Utc;
 use strum::IntoEnumIterator;
 
 pub fn run(
-    app: &(impl StoreList + StoreItems + FetchItems + FetchList + StoreItemRanks + LoadLatestItemRank),
+    app: &(impl StoreList
+          + StoreItems
+          + FetchItems
+          + FetchList
+          + StoreItemRanks
+          + LoadLatestItemRank
+          + ReplaceList),
 ) -> Result<()> {
     for category in ListCategory::iter() {
         let ids = app.fetch_list(category.clone())?;
@@ -20,7 +27,7 @@ pub fn run(
 }
 
 fn fetch_and_store(
-    app: &(impl StoreList + StoreItems + FetchItems + StoreItemRanks + LoadLatestItemRank),
+    app: &(impl StoreList + ReplaceList + StoreItems + FetchItems + StoreItemRanks + LoadLatestItemRank),
     ids: Vec<u32>,
     category: ListCategory,
 ) -> Result<()> {
@@ -30,8 +37,7 @@ fn fetch_and_store(
     // Fetch from HN API
     let items = app.fetch_items(ids.clone())?;
 
-    app.delete_list(category, &ids)?;
-    app.store_list(category, &ids)?;
+    app.replace_list(category, &ids)?;
 
     // Store change in item
     app.store_items(items)?;
