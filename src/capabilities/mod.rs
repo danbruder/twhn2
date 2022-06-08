@@ -1,4 +1,5 @@
 use anyhow::Result;
+use serde::{de::DeserializeOwned, ser::Serialize};
 
 use crate::{
     domain::{ItemRank, ListCategory},
@@ -59,4 +60,13 @@ pub trait LoadItemRanks {
 #[mockall::automock]
 pub trait LoadLatestItemRank {
     fn load_latest_item_rank(&self, id: u32, category: ListCategory) -> Result<Option<ItemRank>>;
+}
+
+// CONFIG
+pub trait StoreConfigValue {
+    fn store_config_value<T: Serialize>(&self, key: &str, value: T) -> Result<()>;
+}
+
+pub trait LoadConfigValue {
+    fn load_config_value_as<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>>;
 }

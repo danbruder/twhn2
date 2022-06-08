@@ -32,14 +32,19 @@ fn main() {
     rocket::ignite().mount("/", routes![hello]).launch();
 }
 
-// Cron
+// Tasks
 // ---
-// Download and save each list
-// Poll for updates
-// Track change in rank
+// [X] Download and save each list
+// [X] Track change in rank
+// [ ] Backfill all items
+// [ ] Poll for updates
+// [ ] Store valid HTML
+// [ ] GraphQL api
+// --------
+// Future
+// --------
 // Track change in score
 // Track change in comment count
-// Backfill all items
 // Process special fields
 //   extract URLs
 //   Parse body into valid HTML

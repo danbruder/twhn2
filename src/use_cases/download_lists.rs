@@ -34,6 +34,7 @@ fn fetch_and_store(
     // Fetch from HN API
     let items = app.fetch_items(ids.clone())?;
 
+    // Replaces list
     app.replace_list(category, &ids)?;
 
     // Store change in item
