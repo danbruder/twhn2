@@ -1,0 +1,401 @@
+//! Item types returned by the API.
+
+use serde::{Deserialize, Serialize};
+
+/// An API item, for example a story or a comment.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[serde(tag = "type")]
+#[serde(rename_all = "lowercase")]
+pub enum Item {
+    /// A story.
+    Story(Story),
+    /// A comment.
+    Comment(Comment),
+    /// A job.
+    Job(Job),
+    /// A poll.
+    Poll(Poll),
+    /// A poll option belonging to a poll.
+    Pollopt(Pollopt),
+}
+
+impl Item {
+    /// Return the id of this item.
+    pub fn id(&self) -> u32 {
+        match self {
+            Item::Story(story) => story.id,
+            Item::Comment(comment) => comment.id,
+            Item::Job(job) => job.id,
+            Item::Poll(poll) => poll.id,
+            Item::Pollopt(pollopt) => pollopt.id,
+        }
+    }
+
+    /// Return the title of this item, if available.
+    pub fn title(&self) -> Option<&str> {
+        match self {
+            Item::Story(story) => Some(&story.title),
+            Item::Job(job) => Some(&job.title),
+            Item::Poll(poll) => Some(&poll.title),
+            _ => None,
+        }
+    }
+
+    /// Return the author of this item, if available.
+    pub fn author(&self) -> Option<&str> {
+        match self {
+            Item::Story(story) => Some(&story.by),
+            Item::Comment(comment) => Some(&comment.by),
+            Item::Poll(poll) => Some(&poll.by),
+            Item::Pollopt(pollopt) => Some(&pollopt.by),
+            _ => None,
+        }
+    }
+
+    pub fn descendants(&self) -> Option<u32> {
+        match self {
+            Item::Story(story) => Some(story.descendants),
+            Item::Poll(poll) => Some(poll.descendants),
+            _ => None,
+        }
+    }
+
+    pub fn body(&self) -> Option<&str> {
+        match self {
+            Item::Story(story) => story.text.as_ref().map(|s| s.as_str()),
+            Item::Comment(comment) => Some(&comment.text),
+            Item::Job(job) => job.text.as_ref().map(|s| s.as_str()),
+            Item::Poll(poll) => poll.text.as_ref().map(|s| s.as_str()),
+            Item::Pollopt(pollopt) => pollopt.text.as_ref().map(|s| s.as_str()),
+        }
+    }
+
+    pub fn url(&self) -> Option<&str> {
+        match self {
+            Item::Story(story) => story.url.as_ref().map(|s| s.as_str()),
+            Item::Job(job) => job.url.as_ref().map(|s| s.as_str()),
+            _ => None,
+        }
+    }
+
+    pub fn score(&self) -> Option<u32> {
+        match self {
+            Item::Story(story) => Some(story.score),
+            Item::Job(job) => Some(job.score),
+            Item::Poll(poll) => Some(poll.score),
+            _ => None,
+        }
+    }
+
+    pub fn username(&self) -> Option<&str> {
+        match self {
+            Item::Story(story) => Some(&story.by),
+            Item::Comment(comment) => Some(&comment.by),
+            Item::Poll(poll) => Some(&poll.by),
+            Item::Pollopt(pollopt) => Some(&pollopt.by),
+            _ => None,
+        }
+    }
+}
+
+/// A story.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct Story {
+    /// The item's unique id.
+    pub id: u32,
+    /// The total comment count.
+    pub descendants: u32,
+    /// The username of the item's author.
+    pub by: String,
+    /// The ids of the item's comments, in ranked display order.
+    pub kids: Option<Vec<u32>>,
+    /// The story's score.
+    pub score: u32,
+    /// The title of the story.
+    pub title: String,
+    /// The URL of the story.
+    pub url: Option<String>,
+    /// The story text. HTML.
+    pub text: Option<String>,
+    /// Creation date of the item, in Unix Time.
+    pub time: u64,
+}
+
+/// A comment.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct Comment {
+    /// The item's unique id.
+    pub id: u32,
+    /// The username of the item's author.
+    pub by: String,
+    /// The ids of the item's comments, in ranked display order.
+    pub kids: Option<Vec<u32>>,
+    /// The comment's parent: either another comment or the relevant story.
+    pub parent: u32,
+    /// The comment text. HTML.
+    pub text: String,
+    /// Creation date of the item, in Unix Time.
+    pub time: u64,
+}
+
+/// A job.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct Job {
+    /// The item's unique id.
+    pub id: u32,
+    /// The story's score, or the votes for a pollopt.
+    pub score: u32,
+    /// The job text. HTML.
+    pub text: Option<String>,
+    /// Creation date of the item, in Unix Time.
+    pub time: u64,
+    /// The title of the job.
+    pub title: String,
+    /// The URL of the story.
+    pub url: Option<String>,
+}
+
+/// A poll.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct Poll {
+    /// The item's unique id.
+    pub id: u32,
+    /// The username of the item's author.
+    pub by: String,
+    /// The total comment count.
+    pub descendants: u32,
+    /// The ids of the item's comments, in ranked display order.
+    pub kids: Option<Vec<u32>>,
+    /// A list of related pollopts, in display order.
+    pub parts: Option<Vec<u32>>,
+    /// The story's score.
+    pub score: u32,
+    /// The title of the story.
+    pub title: String,
+    /// The story text. HTML.
+    pub text: Option<String>,
+    /// Creation date of the item, in Unix Time.
+    pub time: u64,
+}
+
+/// A poll option belonging to a poll.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct Pollopt {
+    /// The item's unique id.
+    pub id: u32,
+    /// The username of the item's author.
+    pub by: String,
+    /// The pollopt's associated poll.
+    pub poll: u32,
+    /// The votes for a pollopt.
+    pub score: u32,
+    /// The story text. HTML.
+    pub text: Option<String>,
+    /// Creation date of the item, in Unix Time.
+    pub time: u64,
+}
+
+/// A user profile.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct User {
+    /// The user's unique username. Case-sensitive.
+    pub id: String,
+    /// Creation date of the user, in Unix Time.
+    pub created: u64,
+    /// The user's karma.
+    pub karma: u32,
+    /// Delay in minutes between a comment's creation and its visibility to
+    /// other users.
+    pub delay: Option<u32>,
+    /// The user's optional self-description. HTML.
+    pub about: Option<String>,
+    /// List of the user's stories, polls and comments.
+    pub submitted: Vec<u32>,
+}
+
+/// A list of recently updated items and users.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct Updates {
+    /// A list of recently changed items.
+    pub items: Vec<u32>,
+    /// A list of recently changed usernames.
+    pub profiles: Vec<String>,
+}
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use super::*;
+
+    pub fn sample_items() -> Vec<Item> {
+        let json = r#"
+        [{
+          "by" : "dhouston",
+          "descendants" : 71,
+          "id" : 8863,
+          "kids" : [ 9224, 8952, 8917, 8884, 8887, 8869, 8940, 8908, 8958, 9005, 8873, 9671, 9067, 9055, 8865, 8881, 8872, 8955, 10403, 8903, 8928, 9125, 8998, 8901, 8902, 8907, 8894, 8870, 8878, 8980, 8934, 8943, 8876 ],
+          "score" : 104,
+          "time" : 1175714200,
+          "title" : "My YC app: Dropbox - Throw away your USB drive",
+          "type" : "story",
+          "url" : "http://www.getdropbox.com/u/2/screencast.html"
+        },
+        {
+          "by" : "tel",
+          "descendants" : 16,
+          "id" : 121003,
+          "kids" : [ 121016, 121109, 121168 ],
+          "score" : 25,
+          "text" : "<i>or</i> HN: the Next Iteration<p>I get the impression that with Arc being released a lot of people who never had time for HN before are suddenly dropping in more often. (PG: what are the numbers on this? I'm envisioning a spike.)<p>Not to say that isn't great, but I'm wary of Diggification. Between links comparing programming to sex and a flurry of gratuitous, ostentatious  adjectives in the headlines it's a bit concerning.<p>80% of the stuff that makes the front page is still pretty awesome, but what's in place to keep the signal/noise ratio high? Does the HN model still work as the community scales? What's in store for (++ HN)?",
+          "time" : 1203647620,
+          "title" : "Ask HN: The Arc Effect",
+          "type" : "story"
+        }, 
+        {
+          "by" : "norvig",
+          "id" : 2921983,
+          "kids" : [ 2922097, 2922429, 2924562, 2922709, 2922573, 2922140, 2922141 ],
+          "parent" : 2921506,
+          "text" : "Aw shucks, guys ... you make me blush with your compliments.<p>Tell you what, Ill make a deal: I'll keep writing if you keep reading. K?",
+          "time" : 1314211127,
+          "type" : "comment"
+        },
+        {
+          "by" : "justin",
+          "id" : 192327,
+          "score" : 6,
+          "text" : "Justin.tv is the biggest live video site online. We serve hundreds of thousands of video streams a day, and have supported up to 50k live concurrent viewers. Our site is growing every week, and we just added a 10 gbps line to our colo. Our unique visitors are up 900% since January.<p>There are a lot of pieces that fit together to make Justin.tv work: our video cluster, IRC server, our web app, and our monitoring and search services, to name a few. A lot of our website is dependent on Flash, and we're looking for talented Flash Engineers who know AS2 and AS3 very well who want to be leaders in the development of our Flash.<p>Responsibilities<p><pre><code>    * Contribute to product design and implementation discussions\n    * Implement projects from the idea phase to production\n    * Test and iterate code before and after production release \n</code></pre>\nQualifications<p><pre><code>    * You should know AS2, AS3, and maybe a little be of Flex.\n    * Experience building web applications.\n    * A strong desire to work on website with passionate users and ideas for how to improve it.\n    * Experience hacking video streams, python, Twisted or rails all a plus.\n</code></pre>\nWhile we're growing rapidly, Justin.tv is still a small, technology focused company, built by hackers for hackers. Seven of our ten person team are engineers or designers. We believe in rapid development, and push out new code releases every week. We're based in a beautiful office in the SOMA district of SF, one block from the caltrain station. If you want a fun job hacking on code that will touch a lot of people, JTV is for you.<p>Note: You must be physically present in SF to work for JTV. Completing the technical problem at <a href=\"http://www.justin.tv/problems/bml\" rel=\"nofollow\">http://www.justin.tv/problems/bml</a> will go a long way with us. Cheers!",
+          "time" : 1210981217,
+          "title" : "Justin.tv is looking for a Lead Flash Engineer!",
+          "type" : "job",
+          "url" : ""
+        }, 
+        {
+          "by" : "pg",
+          "descendants" : 54,
+          "id" : 126809,
+          "kids" : [ 126822, 126823, 126917, 126993, 126824, 126934, 127411, 126888, 127681, 126818, 126816, 126854, 127095, 126861, 127313, 127299, 126859, 126852, 126882, 126832, 127072, 127217, 126889, 126875, 127535 ],
+          "parts" : [ 126810, 126811, 126812 ],
+          "score" : 47,
+          "time" : 1204403652,
+          "title" : "Poll: What would happen if News.YC had explicit support for polls?",
+          "type" : "poll"
+        },
+        {
+          "by" : "pg",
+          "id" : 160705,
+          "poll" : 160704,
+          "score" : 335,
+          "text" : "Yes, ban them; I'm tired of seeing Valleywag stories on News.YC.",
+          "time" : 1207886576,
+          "type" : "pollopt"
+        }]
+    "#;
+
+        let items: Vec<Item> = serde_json::from_str(&json).unwrap();
+
+        items
+    }
+
+    #[test]
+    fn test_story() {
+        let json = r#"
+        {
+          "by" : "dhouston",
+          "descendants" : 71,
+          "id" : 8863,
+          "kids" : [ 9224, 8952, 8917, 8884, 8887, 8869, 8940, 8908, 8958, 9005, 8873, 9671, 9067, 9055, 8865, 8881, 8872, 8955, 10403, 8903, 8928, 9125, 8998, 8901, 8902, 8907, 8894, 8870, 8878, 8980, 8934, 8943, 8876 ],
+          "score" : 104,
+          "time" : 1175714200,
+          "title" : "My YC app: Dropbox - Throw away your USB drive",
+          "type" : "story",
+          "url" : "http://www.getdropbox.com/u/2/screencast.html"
+        }"#;
+        let _story: Story = serde_json::from_str(&json).unwrap();
+        let _item: Item = serde_json::from_str(&json).unwrap();
+    }
+
+    #[test]
+    fn test_ask() {
+        let json = r#"
+        {
+          "by" : "tel",
+          "descendants" : 16,
+          "id" : 121003,
+          "kids" : [ 121016, 121109, 121168 ],
+          "score" : 25,
+          "text" : "<i>or</i> HN: the Next Iteration<p>I get the impression that with Arc being released a lot of people who never had time for HN before are suddenly dropping in more often. (PG: what are the numbers on this? I'm envisioning a spike.)<p>Not to say that isn't great, but I'm wary of Diggification. Between links comparing programming to sex and a flurry of gratuitous, ostentatious  adjectives in the headlines it's a bit concerning.<p>80% of the stuff that makes the front page is still pretty awesome, but what's in place to keep the signal/noise ratio high? Does the HN model still work as the community scales? What's in store for (++ HN)?",
+          "time" : 1203647620,
+          "title" : "Ask HN: The Arc Effect",
+          "type" : "story"
+        }"#;
+        let _story: Story = serde_json::from_str(&json).unwrap();
+        let _item: Item = serde_json::from_str(&json).unwrap();
+    }
+
+    #[test]
+    fn test_comment() {
+        let json = r#"
+        {
+          "by" : "norvig",
+          "id" : 2921983,
+          "kids" : [ 2922097, 2922429, 2924562, 2922709, 2922573, 2922140, 2922141 ],
+          "parent" : 2921506,
+          "text" : "Aw shucks, guys ... you make me blush with your compliments.<p>Tell you what, Ill make a deal: I'll keep writing if you keep reading. K?",
+          "time" : 1314211127,
+          "type" : "comment"
+        }"#;
+        let _comment: Comment = serde_json::from_str(&json).unwrap();
+        let _item: Item = serde_json::from_str(&json).unwrap();
+    }
+
+    #[test]
+    fn test_job() {
+        let json = r#"
+        {
+          "by" : "justin",
+          "id" : 192327,
+          "score" : 6,
+          "text" : "Justin.tv is the biggest live video site online. We serve hundreds of thousands of video streams a day, and have supported up to 50k live concurrent viewers. Our site is growing every week, and we just added a 10 gbps line to our colo. Our unique visitors are up 900% since January.<p>There are a lot of pieces that fit together to make Justin.tv work: our video cluster, IRC server, our web app, and our monitoring and search services, to name a few. A lot of our website is dependent on Flash, and we're looking for talented Flash Engineers who know AS2 and AS3 very well who want to be leaders in the development of our Flash.<p>Responsibilities<p><pre><code>    * Contribute to product design and implementation discussions\n    * Implement projects from the idea phase to production\n    * Test and iterate code before and after production release \n</code></pre>\nQualifications<p><pre><code>    * You should know AS2, AS3, and maybe a little be of Flex.\n    * Experience building web applications.\n    * A strong desire to work on website with passionate users and ideas for how to improve it.\n    * Experience hacking video streams, python, Twisted or rails all a plus.\n</code></pre>\nWhile we're growing rapidly, Justin.tv is still a small, technology focused company, built by hackers for hackers. Seven of our ten person team are engineers or designers. We believe in rapid development, and push out new code releases every week. We're based in a beautiful office in the SOMA district of SF, one block from the caltrain station. If you want a fun job hacking on code that will touch a lot of people, JTV is for you.<p>Note: You must be physically present in SF to work for JTV. Completing the technical problem at <a href=\"http://www.justin.tv/problems/bml\" rel=\"nofollow\">http://www.justin.tv/problems/bml</a> will go a long way with us. Cheers!",
+          "time" : 1210981217,
+          "title" : "Justin.tv is looking for a Lead Flash Engineer!",
+          "type" : "job",
+          "url" : ""
+        }"#;
+        let _job: Job = serde_json::from_str(&json).unwrap();
+        let _item: Item = serde_json::from_str(&json).unwrap();
+    }
+
+    #[test]
+    fn test_poll() {
+        let json = r#"
+        {
+          "by" : "pg",
+          "descendants" : 54,
+          "id" : 126809,
+          "kids" : [ 126822, 126823, 126917, 126993, 126824, 126934, 127411, 126888, 127681, 126818, 126816, 126854, 127095, 126861, 127313, 127299, 126859, 126852, 126882, 126832, 127072, 127217, 126889, 126875, 127535 ],
+          "parts" : [ 126810, 126811, 126812 ],
+          "score" : 47,
+          "time" : 1204403652,
+          "title" : "Poll: What would happen if News.YC had explicit support for polls?",
+          "type" : "poll"
+        }"#;
+        let _poll: Poll = serde_json::from_str(&json).unwrap();
+        let _item: Item = serde_json::from_str(&json).unwrap();
+    }
+
+    #[test]
+    fn test_pollopt() {
+        let json = r#"
+        {
+          "by" : "pg",
+          "id" : 160705,
+          "poll" : 160704,
+          "score" : 335,
+          "text" : "Yes, ban them; I'm tired of seeing Valleywag stories on News.YC.",
+          "time" : 1207886576,
+          "type" : "pollopt"
+        }"#;
+        let _pollopt: Pollopt = serde_json::from_str(&json).unwrap();
+        let _item: Item = serde_json::from_str(&json).unwrap();
+    }
+}

@@ -1,0 +1,19 @@
+[package]
+name = "twhn2"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.56"
+chrono = "0.4.19"
+duckdb = {version = "0.3.4", features = ["bundled", "r2d2", "modern-full"]}
+lazy_static = "1.4.0"
+mockito = "0.31.0"
+r2d2 = "0.8.9"
+rayon = "1.5.1"
+reqwest = "0.9"
+rocket = "0.4"
+serde = {version = "1", features = ["derive"]}
+serde_json = "1.0.79"
+strum = "0.24"
+strum_macros = "0.24"

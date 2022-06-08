@@ -1,0 +1,81 @@
+use std::str::FromStr;
+
+use anyhow::Result;
+use chrono::{TimeZone, Utc};
+use duckdb::{params, DropBehavior};
+
+use crate::{
+    adapters::AppCapabilities,
+    capabilities::{LoadItemRanks, StoreItemRanks},
+    domain::{ItemRank, ListCategory},
+};
+
+impl StoreItemRanks for AppCapabilities {
+    fn store_item_ranks(&self, item_ranks: Vec<ItemRank>) -> Result<()> {
+        let mut conn = self.db.get()?;
+        let mut tx = conn.transaction()?;
+        tx.set_drop_behavior(DropBehavior::Commit);
+
+        let mut app = tx.appender("item_rank")?;
+
+        for rank in item_ranks.into_iter() {
+            app.append_row(params![
+                rank.id,
+                rank.rank,
+                rank.category.to_string(),
+                rank.ts.timestamp_millis()
+            ])?;
+        }
+
+        Ok(())
+    }
+}
+
+impl LoadItemRanks for AppCapabilities {
+    fn load_item_ranks(&self, id: u32, category: ListCategory) -> Result<Vec<ItemRank>> {
+        let conn = self.db.get()?;
+        let mut stmt =
+            conn.prepare("SELECT id, rank, list, ts FROM item_rank WHERE id = ?1 AND list = ?2")?;
+
+        let results = stmt
+            .query_map(params![id, category.to_string()], |row| {
+                let cat: String = row.get(2)?;
+                let millis: i64 = row.get(3)?;
+
+                Ok(ItemRank {
+                    id: row.get(0)?,
+                    rank: row.get(1)?,
+                    category: ListCategory::from_str(&cat)
+                        .map_err(|_| duckdb::Error::InvalidQuery)?,
+                    ts: Utc.timestamp_millis(millis),
+                })
+            })?
+            .filter_map(Result::ok)
+            .collect();
+
+        Ok(results)
+    }
+}
+
+#[cfg(test)]
+pub mod test {
+    use super::*;
+    use chrono::Utc;
+
+    #[test]
+    fn store_items() {
+        let app = crate::adapters::test::setup();
+        let ts = Utc.ymd(2020, 1, 1).and_hms_milli(0, 0, 1, 0);
+        let ranks = vec![ItemRank {
+            id: 1,
+            rank: 1,
+            ts,
+            category: ListCategory::Top,
+        }];
+        let _ = app.store_item_ranks(ranks.clone()).unwrap();
+        let got = app.load_item_ranks(1, ListCategory::Top).unwrap();
+        let want = ranks;
+
+        assert_eq!(got, want);
+    }
+}
