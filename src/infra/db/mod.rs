@@ -87,7 +87,7 @@ impl Duck {
 
                 CREATE TABLE IF NOT EXISTS config (
                     key VARCHAR,
-                    value BLOB,
+                    value TEXT,
                     PRIMARY KEY (key)
                 );
                 ",

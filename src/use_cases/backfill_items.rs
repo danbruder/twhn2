@@ -1,7 +1,9 @@
 use crate::capabilities::*;
 use anyhow::Result;
 
-fn run(app: &(impl StoreItems + FetchItems + LoadConfigValue + StoreConfigValue)) -> Result<()> {
+pub fn run(
+    app: &(impl StoreItems + FetchItems + LoadConfigValue + StoreConfigValue),
+) -> Result<()> {
     // Get items by id, see who exists for a range starting at last offset
     let key = "backfill_ptr";
     let backfill_ptr: u32 = app.load_config_value_as(key)?.unwrap_or(0);

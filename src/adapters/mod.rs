@@ -1,3 +1,4 @@
+mod config;
 mod item;
 mod item_rank;
 mod list;

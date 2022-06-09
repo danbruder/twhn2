@@ -54,6 +54,7 @@ fn main() {
 fn cron(app: AppCapabilities) {
     let do_work = || -> Result<()> {
         use_cases::download_lists::run(&app)?;
+        use_cases::backfill_items::run(&app)?;
         Ok(())
     };
 
