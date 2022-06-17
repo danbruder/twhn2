@@ -7,11 +7,20 @@ use crate::{adapters::AppCapabilities, capabilities::*};
 impl StoreConfigValue for AppCapabilities {
     fn store_config_value<T: Serialize>(&self, key: &str, value: T) -> Result<()> {
         let conn = self.db.get()?;
+
+        let _ = conn.execute(
+            r#"
+                    DELETE FROM config 
+                    WHERE key=?1
+            "#,
+            params![key],
+        )?;
+
         let _ = conn.execute(
             r#"
                     INSERT INTO config (key, value)
                     VALUES (?1, ?2)
-                "#,
+            "#,
             params![key, serde_json::to_string(&value)?],
         )?;
 

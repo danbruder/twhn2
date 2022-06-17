@@ -1,12 +1,14 @@
 use anyhow::Result;
 use chrono::Utc;
-use duckdb::{params, DropBehavior, OptionalExt};
+use duckdb::{params, OptionalExt};
 
-use crate::{
-    adapters::AppCapabilities,
-    capabilities::{FetchItem, FetchItems, LoadItem, LoadItems, StoreItem, StoreItems},
-    infra::hn::types::Item,
-};
+use crate::{adapters::AppCapabilities, capabilities::*, infra::hn::types::Item};
+
+impl FetchUpdates for AppCapabilities {
+    fn fetch_updates(&self) -> Result<Vec<u32>> {
+        Ok(self.client.get_updates()?.items)
+    }
+}
 
 impl FetchItems for AppCapabilities {
     fn fetch_items(&self, ids: Vec<u32>) -> Result<Vec<Item>> {
@@ -23,26 +25,32 @@ impl FetchItem for AppCapabilities {
 impl StoreItems for AppCapabilities {
     fn store_items(&self, items: Vec<Item>) -> Result<()> {
         let mut conn = self.db.get()?;
-        let mut tx = conn.transaction()?;
-        tx.set_drop_behavior(DropBehavior::Commit);
+        let tx = conn.transaction()?;
 
-        let mut app = tx.appender("item")?;
-
-        let ts = Utc::now().timestamp_millis();
-        for item in items.into_iter() {
+        let ts = Utc::now();
+        for item in items {
             let original = serde_json::to_string(&item)?;
-            app.append_row(params![
-                item.id(),
-                original,
-                item.descendants(),
-                item.username(),
-                item.score(),
-                item.title(),
-                item.url(),
-                item.body(),
-                ts.clone(),
-            ])?;
+            let _ = tx
+            .execute(
+                r#"
+                    INSERT INTO item (id, original, descendants, username, score, title, url, body, ts)
+                    VALUES 
+                    (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+                "#,
+                params![
+                    item.id(),
+                    original,
+                    item.descendants(),
+                    item.username(),
+                    item.score(),
+                    item.title(),
+                    item.url(),
+                    item.body(),
+                    ts.clone(),
+                ]
+            )?;
         }
+        tx.commit()?;
 
         Ok(())
     }

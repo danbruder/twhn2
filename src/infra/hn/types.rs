@@ -96,6 +96,16 @@ impl Item {
             _ => None,
         }
     }
+
+    pub fn ts(&self) -> Option<&u64> {
+        match self {
+            Item::Story(story) => Some(&story.time),
+            Item::Comment(comment) => Some(&comment.time),
+            Item::Poll(poll) => Some(&poll.time),
+            Item::Pollopt(pollopt) => Some(&pollopt.time),
+            _ => None,
+        }
+    }
 }
 
 /// A story.

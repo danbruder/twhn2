@@ -58,6 +58,11 @@ pub trait FetchItems {
     fn fetch_items(&self, ids: Vec<u32>) -> Result<Vec<Item>>;
 }
 
+#[mockall::automock]
+pub trait FetchUpdates {
+    fn fetch_updates(&self) -> Result<Vec<u32>>;
+}
+
 // ITEM RANKS
 #[mockall::automock]
 pub trait StoreItemRanks {

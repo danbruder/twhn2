@@ -36,7 +36,7 @@ fn main() {
 // ---
 // [X] Download and save each list
 // [X] Track change in rank
-// [ ] Backfill all items
+// [X] Backfill all items
 // [ ] Poll for updates
 // [ ] Store valid HTML
 // [ ] GraphQL api
@@ -53,14 +53,15 @@ fn main() {
 // Search index
 fn cron(app: AppCapabilities) {
     let do_work = || -> Result<()> {
-        use_cases::download_lists::run(&app)?;
-        use_cases::backfill_items::run(&app, 10_000)?;
+        //use_cases::download_lists::run(&app)?;
+        use_cases::backfill_items::run(&app, 10)?;
+        //use_cases::poll_for_updates::run(&app)?;
         Ok(())
     };
 
     loop {
         let result = do_work();
-        println!("Done");
+        println!("Finished cron loop");
 
         if result.is_err() {
             println!("{:?}", result);
