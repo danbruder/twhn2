@@ -37,12 +37,12 @@ fn main() {
 // [X] Download and save each list
 // [X] Track change in rank
 // [X] Backfill all items
-// [ ] Poll for updates
-// [ ] Store valid HTML
+// [X] Poll for updates
 // [ ] GraphQL api
 // --------
 // Future
 // --------
+// [ ] Store valid HTML
 // Track change in score
 // Track change in comment count
 // Process special fields
