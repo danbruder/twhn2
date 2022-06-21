@@ -42,15 +42,9 @@ fn main() {
 // --------
 // Future
 // --------
+// [ ] Search API
 // [ ] Store valid HTML
-// Track change in score
-// Track change in comment count
-// Process special fields
-//   extract URLs
-//   Parse body into valid HTML
-//   Create Markdown from HTML
-//   Create Plaintext from HTML
-// Search index
+// [ ] Track change in score, comment count, etc.
 fn cron(app: AppCapabilities) {
     let do_work = || -> Result<()> {
         //use_cases::download_lists::run(&app)?;
