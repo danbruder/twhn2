@@ -1,4 +1,5 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+#[macro_use]
+extern crate rocket;
 
 mod adapters;
 mod capabilities;
@@ -16,10 +17,11 @@ use std::time::Duration;
 extern crate rocket;
 
 #[get("/hello/<name>/<age>")]
-fn hello(name: String, age: u8) -> String {
+fn hello(name: &str, age: u8) -> String {
     format!("Hello, {} year old named {}!", age, name)
 }
 
+#[launch]
 fn main() {
     let client = HnClient::init().unwrap();
     let duck = Duck::setup("data.db").expect("Could not connect to database");
@@ -29,7 +31,7 @@ fn main() {
         cron(app);
     });
 
-    rocket::ignite().mount("/", routes![hello]).launch();
+    rocket::build().mount("/", routes![hello])
 }
 
 // Tasks
