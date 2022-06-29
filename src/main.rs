@@ -4,6 +4,7 @@ extern crate rocket;
 mod adapters;
 mod capabilities;
 mod domain;
+mod graphql;
 mod infra;
 mod use_cases;
 
@@ -12,6 +13,31 @@ use anyhow::Result;
 use infra::{db::Duck, hn::HnClient};
 use std::thread;
 use std::time::Duration;
+
+use async_graphql::{
+    http::{playground_source, GraphQLPlaygroundConfig},
+    EmptyMutation, EmptySubscription, Schema,
+};
+use async_graphql_rocket::{GraphQLQuery, GraphQLRequest, GraphQLResponse};
+use graphql::QueryRoot;
+use rocket::{response::content, routes, State};
+
+pub type TwhnSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
+
+#[rocket::get("/")]
+fn graphql_playground() -> content::RawHtml<String> {
+    content::RawHtml(playground_source(GraphQLPlaygroundConfig::new("/graphql")))
+}
+
+#[rocket::get("/graphql?<query..>")]
+async fn graphql_query(schema: &State<TwhnSchema>, query: GraphQLQuery) -> GraphQLResponse {
+    query.execute(schema).await
+}
+
+#[rocket::post("/graphql", data = "<request>", format = "application/json")]
+async fn graphql_request(schema: &State<TwhnSchema>, request: GraphQLRequest) -> GraphQLResponse {
+    request.execute(schema).await
+}
 
 #[launch]
 fn rocket() -> _ {
@@ -23,7 +49,12 @@ fn rocket() -> _ {
         cron(app);
     });
 
-    rocket::build().mount("/", routes![])
+    let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription).finish();
+
+    rocket::build().manage(schema).mount(
+        "/",
+        routes![graphql_query, graphql_request, graphql_playground],
+    )
 }
 
 // Tasks
