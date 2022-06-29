@@ -152,6 +152,7 @@ dependencies = [
  "async-stream",
  "async-trait",
  "bytes 1.1.0",
+ "chrono",
  "fast_chemail",
  "fnv",
  "futures-util",
