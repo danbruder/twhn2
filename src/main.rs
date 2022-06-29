@@ -13,16 +13,8 @@ use infra::{db::Duck, hn::HnClient};
 use std::thread;
 use std::time::Duration;
 
-#[macro_use]
-extern crate rocket;
-
-#[get("/hello/<name>/<age>")]
-fn hello(name: &str, age: u8) -> String {
-    format!("Hello, {} year old named {}!", age, name)
-}
-
 #[launch]
-fn main() {
+fn rocket() -> _ {
     let client = HnClient::init().unwrap();
     let duck = Duck::setup("data.db").expect("Could not connect to database");
     duck.migrate().expect("Failed to migrate the database");
@@ -31,7 +23,7 @@ fn main() {
         cron(app);
     });
 
-    rocket::build().mount("/", routes![hello])
+    rocket::build().mount("/", routes![])
 }
 
 // Tasks
@@ -49,9 +41,9 @@ fn main() {
 // [ ] Track change in score, comment count, etc.
 fn cron(app: AppCapabilities) {
     let do_work = || -> Result<()> {
-        //use_cases::download_lists::run(&app)?;
+        use_cases::download_lists::run(&app)?;
         use_cases::backfill_items::run(&app, 10)?;
-        //use_cases::poll_for_updates::run(&app)?;
+        use_cases::poll_for_updates::run(&app)?;
         Ok(())
     };
 
@@ -63,6 +55,6 @@ fn cron(app: AppCapabilities) {
             println!("{:?}", result);
         }
 
-        thread::sleep(Duration::from_secs(3));
+        thread::sleep(Duration::from_secs(20));
     }
 }

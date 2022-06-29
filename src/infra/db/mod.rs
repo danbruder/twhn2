@@ -15,6 +15,7 @@ impl Duck {
         Ok(Self(pool))
     }
 
+    #[cfg(test)]
     pub fn memory() -> Result<Self> {
         let manager = DuckdbConnectionManager::memory()?;
         let pool = r2d2::Pool::new(manager)?;
