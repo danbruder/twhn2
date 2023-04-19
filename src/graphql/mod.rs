@@ -1,5 +1,5 @@
 use async_graphql::*;
-use chrono::{NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 
 pub struct QueryRoot;
 
@@ -87,6 +87,34 @@ impl QueryRoot {
 
     //     Ok(backfill_ptr)
     // }
+}
+
+/// An API item, for example a story or a comment.
+#[derive(Debug, Clone, Union)]
+pub enum Item {
+    /// A story.
+    Story(Story),
+    /// A comment.
+    Comment(Comment),
+    /// A job.
+    Job(Job),
+}
+
+impl Item {
+    pub fn kids(&self) -> Vec<u32> {
+        match self {
+            Item::Story(story) => story.kids.clone().unwrap_or_default(),
+            Item::Comment(comment) => comment.kids.clone().unwrap_or_default(),
+            Item::Job(_) => vec![],
+        }
+    }
+
+    pub fn parent(&self) -> Option<u32> {
+        match self {
+            Item::Comment(comment) => Some(comment.parent),
+            _ => None,
+        }
+    }
 }
 
 #[Object]
